@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuis Interaktif 50 Soal ATS Informatika XII</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .quiz-card { background: #ffffff; width: 100%; max-width: 700px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 28px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef0f3; padding-bottom: 16px; margin-bottom: 20px; }
+    .badge { background: #e8f0fe; color: #1a73e8; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .score-badge { background: #e6f4ea; color: #137333; }
+    .type-badge { background: #feefc3; color: #b06000; margin-bottom: 12px; display: inline-block; }
+    .question-text { font-size: 17px; font-weight: 600; color: #202124; line-height: 1.5; margin-bottom: 20px; }
+    .options-grid { display: flex; flex-direction: column; gap: 10px; }
+    .option-btn { background: #f8f9fa; border: 2px solid #dadce0; border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #3c4043; text-align: left; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; }
+    .option-btn:hover:not([disabled]) { background: #f1f3f4; border-color: #bdc1c6; }
+    .option-btn.correct { background: #e6f4ea !important; border-color: #34a853 !important; color: #137333 !important; font-weight: 600; }
+    .option-btn.wrong { background: #fce8e6 !important; border-color: #ea4335 !important; color: #c5221f !important; font-weight: 600; }
+    .checkbox-custom { width: 18px; height: 18px; margin-right: 12px; }
+    .explanation { margin-top: 20px; padding: 14px 18px; border-radius: 10px; background: #f8f9fa; border-left: 4px solid #1a73e8; font-size: 14px; color: #3c4043; display: none; }
+    .footer { margin-top: 24px; display: flex; justify-content: space-between; align-items: center; }
+    .action-btn { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .action-btn:hover { background: #1557b0; }
+    .result-screen { text-align: center; display: none; }
+    .result-score { font-size: 52px; font-weight: 700; color: #1a73e8; margin: 20px 0; }
+    .restart-btn { background: #34a853; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <div class="quiz-card">
+    <div id="quiz-screen">
+      <div class="header">
+        <span class="badge" id="question-number">Soal 1 / 50</span>
+        <span class="badge score-badge" id="score-count">Skor: 0</span>
+      </div>
+      
+      <span class="badge type-badge" id="question-type">Pilihan Ganda Tunggal</span>
+      <div class="question-text" id="question-text">Loading soal...</div>
+      <div class="options-grid" id="options-container"></div>
+      <div class="explanation" id="explanation-box"></div>
+
+      <div class="footer">
+        <div></div>
+        <button class="action-btn" id="action-btn" onclick="handleAction()">Jawab</button>
+      </div>
+    </div>
+
+    <div class="result-screen" id="result-screen">
+      <h2>Kuis 50 Soal Selesai! 🎉</h2>
+      <p style="color: #5f6368;">Hasil Nilai Akhir Kamu:</p>
+      <div class="result-score" id="final-score">0 / 100</div>
+      <p id="result-desc" style="font-size: 16px; color: #3c4043; margin-bottom: 24px;"></p>
+      <button class="restart-btn" onclick="restartQuiz()">Ulangi Kuis</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      // 1-30: PG Tunggal
+      { type: "single", q: "Sebuah startup fintech yang menangani transaksi perbankan ingin menghemat biaya infrastruktur server publik, namun memiliki kewajiban regulasi menyimpan data di server lokal sendiri. Model cloud paling tepat adalah...", options: ["Public Cloud", "Private Cloud", "Hybrid Cloud", "Community Cloud"], correct: 2, exp: "<b>Pembahasan:</b> Hybrid Cloud menggabungkan Private Cloud (server lokal rahasia) dan Public Cloud (fleksibel)." },
+      { type: "single", q: "Perusahaan media mengalami lonjakan trafik 500% saat pemilu. Cloud menambah kapasitas otomatis saat puncak dan menurunkannya lagi saat sepi. Karakteristik ini disebut...", options: ["Resource Pooling", "Rapid Elasticity", "Measured Service", "Broad Network Access"], correct: 1, exp: "<b>Pembahasan:</b> Rapid Elasticity adalah kemampuan penskalaan kapasitas secara dinamis dan otomatis." },
+      { type: "single", q: "Pengembang ingin mendeploy kode Node.js dan PostgreSQL tanpa pusing mengelola konfigurasi OS Linux atau kernel. Kategori cloud ini adalah...", options: ["IaaS", "PaaS", "SaaS", "FaaS"], correct: 1, exp: "<b>Pembahasan:</b> PaaS menyediakan platform siap pakai untuk aplikasi tanpa mengurus sistem operasi." },
+      { type: "single", q: "Sekolah menggunakan Google Workspace for Education (Gmail, Docs, Drive). Ini diklasifikasikan sebagai...", options: ["IaaS", "PaaS", "SaaS", "NaaS"], correct: 2, exp: "<b>Pembahasan:</b> SaaS adalah aplikasi siap pakai langsung via internet tanpa instalasi." },
+      { type: "single", q: "Korporasi menyewa Virtual Machine, virtual router, dan block storage mentah dari AWS. Model layanannya adalah...", options: ["IaaS", "PaaS", "SaaS", "DaaS"], correct: 0, exp: "<b>Pembahasan:</b> IaaS menyewakan infrastruktur mentah (server, storage, jaringan)." },
+      { type: "single", q: "Dalam Shared Responsibility Model pada IaaS, tanggung jawab penuh pelanggan adalah...", options: ["Keamanan fisik gedung data center", "Pemeliharaan hardware server fisik", "Keamanan hypervisor", "Pengelolaan Sistem Operasi, Aplikasi, dan Data"], correct: 3, exp: "<b>Pembahasan:</b> Pelanggan bertanggung jawab atas OS, data, dan aplikasi di dalam VM." },
+      { type: "single", q: "Keunggulan finansial komputasi awan terkait pergeseran CapEx ke OpEx adalah...", options: ["Mengubah lisensi jadi aset", "Mengalihkan investasi besar awal menjadi biaya operasional rutin sesuai pemakaian", "Menghilangkan biaya jaringan", "Membeli hardware tiap tahun"], correct: 1, exp: "<b>Pembahasan:</b> CapEx (modal beli hardware) berubah menjadi OpEx (sewa rutin sesuai pemakaian)." },
+      { type: "single", q: "Alasan utama Bank BUMN memilih Private Cloud untuk core banking adalah...", options: ["Biaya investasi nol", "Pemeliharaan hardware gratis", "Kontrol penuh keamanan data & kepatuhan regulasi ketat", "Akses terbuka untuk umum"], correct: 2, exp: "<b>Pembahasan:</b> Private Cloud memberikan privasi penuh dan jaminan regulasi ketat." },
+      { type: "single", q: "Mencegah downtime total saat satu data center terbakar dapat dilakukan dengan arsitektur...", options: ["Single Storage", "Replikasi Multi-AZ dan Redundansi Multi-Region", "Server fisik tunggal besar", "Menonaktifkan backup"], correct: 1, exp: "<b>Pembahasan:</b> Multi-AZ menyebarkan server ke beberapa gedung data center terpisah." },
+      { type: "single", q: "Mengapa Public Cloud paling rasional untuk startup tahap awal?", options: ["Kepemilikan penuh hardware", "Tidak butuh modal awal besar (no upfront CapEx) & scalable", "Bebas hukum internet", "Dijamin tidak ada lonjakan trafik"], correct: 1, exp: "<b>Pembahasan:</b> Hemat modal awal dan kapasitas bisa membesar seiring pertumbuhan." },
+      { type: "single", q: "Data CCTV kota masuk jutaan per detik dan harus diproses seketika. Karakteristik Big Data ini adalah...", options: ["Volume", "Variety", "Velocity", "Veracity"], correct: 2, exp: "<b>Pembahasan:</b> Velocity merujuk pada kecepatan masukan dan pemrosesan data real-time." },
+      { type: "single", q: "Pergeseran utama era Industri 4.0 menuju Society 5.0 adalah...", options: ["Mesin uap ke listrik", "Otomatisasi pabrik ke manual", "Otomasi siber-fisik ke integrasi teknologi untuk kesejahteraan manusia (Human-Centric)", "Melarang penggunaan AI"], correct: 2, exp: "<b>Pembahasan:</b> Society 5.0 berpusat pada manusia (human-centric) dalam memanfaatkan teknologi." },
+      { type: "single", q: "AI dilatih dengan 50.000 citra rontgen paru-paru untuk mengenali pola penyakit. Cabang AI ini adalah...", options: ["Natural Language Processing", "Machine Learning", "Expert System", "Robotics"], correct: 1, exp: "<b>Pembahasan:</b> Machine Learning melatih sistem mengenali pola otomatis dari kumpulan data." },
+      { type: "single", q: "Siswa mampu mencari artikel ilmiah dengan filter domain dan memvalidasi kebenaran data. Ini mencerminkan pilar...", options: ["Digital Ethics", "Digital Safety", "Digital Culture", "Digital Skills"], correct: 3, exp: "<b>Pembahasan:</b> Digital Skills mencakup kecakapan menggunakan teknologi dan mencari informasi." },
+      { type: "single", q: "Netizen tetap bersikap santun dan menghargai perbedaan pandangan di forum daring. Ini mengimplementasikan pilar...", options: ["Digital Skills", "Digital Ethics", "Digital Safety", "Digital Culture"], correct: 1, exp: "<b>Pembahasan:</b> Digital Ethics berkaitan dengan etika dan tata krama berinteraksi di dunia maya." },
+      { type: "single", q: "Menjaga nilai Pancasila dan kebinekaan di ruang media sosial merupakan perwujudan pilar...", options: ["Digital Ethics", "Digital Culture", "Digital Safety", "Digital Skills"], correct: 1, exp: "<b>Pembahasan:</b> Digital Culture menerapkan nilai kebangsaan dan wawasan budaya di ruang digital." },
+      { type: "single", q: "Langkah pencegahan tepat pada pilar Digital Safety saat menggunakan akun perbankan adalah...", options: ["Password tanggal lahir", "Mengaktifkan Autentikasi Dua Faktor (2FA)", "Bagikan password ke teman", "Klik semua link promosi"], correct: 1, exp: "<b>Pembahasan:</b> 2FA memberikan perlindungan keamanan ganda pada akun digital." },
+      { type: "single", q: "Data pembelian pelanggan bercampur antara teks, suara, dan tabel SQL. Karakteristik Big Data ini adalah...", options: ["Volume", "Velocity", "Variety", "Veracity"], correct: 2, exp: "<b>Pembahasan:</b> Variety merujuk pada keberagaman bentuk dan format data." },
+      { type: "single", q: "Penanda utama teknologi yang merepresentasikan era Revolusi Industri 3.0 adalah...", options: ["Mesin tenun uap", "Ban berjalan dan listrik", "Komputer, perangkat elektronika, dan PLC", "AI dan siber-fisik"], correct: 2, exp: "<b>Pembahasan:</b> Industri 3.0 ditandai dengan ditemukannya komputer, otomasi, dan semikonduktor." },
+      { type: "single", q: "Risiko etika paling kritis dari penggunaan Generative AI (ChatGPT/DALL-E) adalah...", options: ["Komputer lambat", "Penyebaran hoaks, deepfake, dan pelanggaran hak cipta", "Harddisk penuh", "Koneksi mati"], correct: 1, exp: "<b>Pembahasan:</b> Generative AI berisiko disalahgunakan untuk manipulasi media (deepfake) dan hak cipta." },
+      { type: "single", q: "Mikrokontroler yang sudah memiliki Wi-Fi dan Bluetooth built-in secara native adalah...", options: ["Arduino Uno", "Arduino Nano", "ATtiny85", "ESP32"], correct: 3, exp: "<b>Pembahasan:</b> ESP32 terintegrasi langsung dengan modul Wi-Fi & Bluetooth." },
+      { type: "single", q: "Mikrokontroler Arduino yang memilik kapasitas pin terbanyak (54 digital, 16 analog) adalah...", options: ["Arduino Uno", "Arduino Nano", "Arduino Pro Mini", "Arduino Mega 2560"], correct: 3, exp: "<b>Pembahasan:</b> Arduino Mega 2560 dirancang untuk proyek kompleks dengan banyak I/O." },
+      { type: "single", q: "Karakteristik pembacaan sensor LDR yang benar pada pin Analog Arduino adalah...", options: ["Resistansi membesar saat terang", "Resistansi mengecil saat terang (nilai analog 0-1023)", "Membaca sinyal HIGH/LOW saja", "Menghasilkan frekuensi suara"], correct: 1, exp: "<b>Pembahasan:</b> Terang = resistansi LDR mengecil = tegangan analog dibaca 0 - 1023." },
+      { type: "single", q: "Mekanisme pin Trigger dan Echo pada sensor Ultrasonik HC-SR04 adalah...", options: ["Echo memancarkan, Trigger menerima", "Trigger memancarkan pulsa, Echo mengukur durasi pantulan kembali", "Keduanya memancarkan infra merah", "Echo memasok listrik 5V"], correct: 1, exp: "<b>Pembahasan:</b> Trigger memancarkan sinyal suara, Echo menangkap pantulannya." },
+      { type: "single", q: "Perbedaan utama sensor DHT22 dibanding DHT11 adalah...", options: ["DHT22 hanya membaca suhu", "DHT22 memiliki akurasi lebih tinggi dan jangkauan pengukuran lebih luas", "DHT11 butuh listrik 220V", "DHT22 tidak butuh pin data"], correct: 1, exp: "<b>Pembahasan:</b> DHT22 versi lebih presisi dibanding DHT11." },
+      { type: "single", q: "Perintah Arduino IDE untuk menggerakkan lengan motor servo ke sudut 90 derajat adalah...", options: ["digitalWrite(servoPin, 90);", "analogWrite(servoPin, 90);", "myservo.write(90);", "servoRead(90);"], correct: 2, exp: "<b>Pembahasan:</b> Library Servo menggunakan perintah `myservo.write(sudut)`." },
+      { type: "single", q: "Potongan kode `delay(1000);` pada program kedip LED Arduino berfungsi untuk...", options: ["Menunda eksekusi selama 1 detik", "Menunda eksekusi 1000 detik", "Mematikan LED selamanya", "Mempercepat kedip"], correct: 0, exp: "<b>Pembahasan:</b> Satuan `delay()` di Arduino adalah milidetik (1000 ms = 1 detik)." },
+      { type: "single", q: "Pesan error 'COM Access is denied' saat upload program biasanya disebabkan oleh...", options: ["Board terbakar", "Port COM sedang dipakai aplikasi lain (seperti Serial Monitor)", "Library terhapus", "Kabel USB kekecilan"], correct: 1, exp: "<b>Pembahasan:</b> Port COM bersifat eksklusif, tidak bisa diakses jika Serial Monitor masih terbuka." },
+      { type: "single", q: "Alasan rumus jarak ultrasonik (durasi * 0.034) harus dibagi 2 adalah...", options: ["Memiliki 2 pin", "Gelombang menempuh jarak bolak-balik (pergi dan pulang)", "Kecepatan suara dibagi dua", "Sistem biner basis 2"], correct: 1, exp: "<b>Pembahasan:</b> Durasi terhitung sejak gelombang keluar hingga kembali memantul." },
+      { type: "single", q: "Perbedaan fungsi void setup() dan void loop() pada Arduino adalah...", options: ["setup() berulang, loop() sekali", "setup() berjalan sekali di awal, loop() berjalan berulang terus menerus", "setup() untuk rumus, loop() untuk pin", "Keduanya dieksekusi acak"], correct: 1, exp: "<b>Pembahasan:</b> `setup()` diinisialisasi 1x saat nyala, `loop()` diulang selamanya." },
+
+      // 31-45: PG Kompleks (Pilih 3)
+      { type: "multi", q: "Keuntungan strategis penerapan Hybrid Cloud bagi perbankan nasional adalah... (Pilih 3 jawaban)", options: ["Menjaga data rahasia di Private Cloud", "Public Cloud untuk lonjakan trafik mobile banking", "Mengeliminasi koneksi internet", "Meminimalkan ketergantungan pada 1 jenis lingkungan", "Mengubah data agar diakses tanpa enkripsi"], correct: [0, 1, 3], exp: "<b>Pembahasan:</b> Hybrid Cloud unggul pada regulasi data rahasia, skalabilitas publik, dan fleksibilitas." },
+      { type: "multi", q: "Pengelompokan layanan cloud computing berikut yang BENAR adalah... (Pilih 3 jawaban)", options: ["AWS EC2 & Google Compute Engine = IaaS", "Google App Engine & Heroku = PaaS", "Google Workspace & Office 365 = SaaS", "Gmail = IaaS mentah", "AWS EC2 = SaaS siap pakai"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> EC2 (IaaS/VM), App Engine (PaaS/Platform), Workspace (SaaS/Aplikasi)." },
+      { type: "multi", q: "Karakteristik esensial Cloud Computing menurut NIST mencakup... (Pilih 3 jawaban)", options: ["On-Demand Self-Service", "Broad Network Access", "Resource Pooling", "Permanent Hardware Ownership", "Mandatory Physical Access"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> NIST mendefinisikan 5 karakteristik utama cloud (termasuk Rapid Elasticity & Measured Service)." },
+      { type: "multi", q: "Saat migrasi dari On-Premise ke PaaS, tanggung jawab teknis yang dialihkan ke vendor adalah... (Pilih 3 jawaban)", options: ["Pemeliharaan hardware server fisik", "Patching & update OS", "Pengelolaan runtime environment (Node.js/Python)", "Penulisan kode aplikasi utama", "Penentuan hak akses pengguna"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Vendor PaaS mengurus hardware, OS, dan runtime. User fokus pada kode aplikasi." },
+      { type: "multi", q: "Faktor efisiensi yang diperoleh organisasi saat menyewa layanan Cloud adalah... (Pilih 3 jawaban)", options: ["Menghindari biaya awal CapEx yang mahal", "Kemudahan menambah kapasitas instan (Scalability)", "Mengurangi biaya pendingin & listrik 24/7", "Bebas dari segala hukum medis", "Menghilangkan butuh internet"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Cloud memangkas CapEx, listrik/pendingin, dan memudahkan skalabilitas." },
+      { type: "multi", q: "Manakah kombinasi dimensi 5V Big Data berikut yang benar? (Pilih 3 jawaban)", options: ["Volume (Ukuran data raksasa)", "Velocity (Kecepatan pertumbuhan data)", "Variety (Keberagaman format data)", "Virtualization (Virtualisasi hardware)", "Verification (Instalasi OS)"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> 5V Big Data: Volume, Velocity, Variety, Veracity, Value." },
+      { type: "multi", q: "Contoh penerapan konvergensi siber-fisik pada Society 5.0 adalah... (Pilih 3 jawaban)", options: ["Drone & AI pengirim bantuan medis", "Pemantauan kesehatan lansia berbasis IoT", "Pertanian presisi dengan AI & irigasi otomatis", "Penutupan seluruh fasilitas publik", "Penghentian jaringan nirkabel"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Society 5.0 mengintegrasikan IoT/AI untuk menyelesaikan masalah sosial manusia." },
+      { type: "multi", q: "Di bawah ini yang merupakan pilar resmi Literasi Digital adalah... (Pilih 3 jawaban)", options: ["Digital Skills", "Digital Ethics", "Digital Safety", "Digital Banking", "Digital Hardware"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> 4 Pilar Literasi Digital: Digital Skills, Digital Ethics, Digital Culture, Digital Safety." },
+      { type: "multi", q: "Tindakan di ruang digital yang MELANGGAR Digital Ethics dan Digital Safety adalah... (Pilih 3 jawaban)", options: ["Menyebar data pribadi orang lain (Doxing)", "Perundungan siber (Cyberbullying)", "Mengirimkan tautan Phishing", "Mengaktifkan Autentikasi 2FA", "Mengunggah karya lisensi resmi"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Doxing, cyberbullying, dan phishing adalah pelanggaran hukum dan etika digital." },
+      { type: "multi", q: "Aplikasi nyata AI yang menerapkan Computer Vision dan Deep Learning adalah... (Pilih 3 jawaban)", options: ["Mobil otonom mengenali marka jalan", "Facial recognition untuk presensi", "Deteksi kelainan organ pada citra Rontgen", "Mesin ketik manual", "Kalkulator saklar"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Computer Vision memproses citra visual seperti gambar jalan, wajah, atau rontgen." },
+      { type: "multi", q: "Keunggulan teknis ESP32 dibandingkan Arduino Uno R3 adalah... (Pilih 3 jawaban)", options: ["Memiliki konektivitas Wi-Fi & Bluetooth built-in", "Kecepatan clock jauh lebih tinggi (240 MHz)", "Kapasitas SRAM & Flash memory lebih besar", "Menggunakan listrik 220V langsung", "Tidak butuh kode program"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> ESP32 unggul di Wi-Fi/Bluetooth, kecepatan pemroses, dan kapasitas memori." },
+      { type: "multi", q: "Karakteristik pembacaan sensor LDR pada pin Analog A0 Arduino yang benar adalah... (Pilih 3 jawaban)", options: ["Membaca data menggunakan `analogRead(A0)`", "Nilai pembacaan berkisar antara 0 - 1023", "Rangkaian pembagi tegangan mengubah resistansi jadi tegangan", "Menggunakan `digitalRead(A0)` untuk lux", "Nilai selalu konstan 500"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Pin analog dibaca via `analogRead()`, menghasilkan nilai ADC 10-bit (0-1023)." },
+      { type: "multi", q: "Prosedur kerja pin & program sensor Ultrasonik HC-SR04 yang benar adalah... (Pilih 3 jawaban)", options: ["Memberikan pulsa HIGH 10µs pada pin Trigger", "Membaca durasi pantulan dengan `pulseIn(echoPin, HIGH)`", "Menghitung jarak dengan `(durasi * 0.034) / 2`", "Menghubungkan Echo ke listrik 220V", "Menggunakan `analogWrite(triggerPin, 255)`"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Trigger butuh pulsa 10 microsecond, Echo dibaca via `pulseIn()`." },
+      { type: "multi", q: "Sintaks dan komponen pendukung untuk proyek DHT22 & Servo pada Arduino adalah... (Pilih 3 jawaban)", options: ["Mengimpor `#include <DHT.h>` dan `#include <Servo.h>`", "Membaca suhu dengan `dht.readTemperature()`", "Menggerakkan servo dengan `myservo.write(sudut)`", "Menggunakan `digitalWrite(DHTPIN, 90)`", "Menghapus pustaka DHT.h"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Library DHT dan Servo dipanggil dengan `#include` dan fungsi `.readTemperature()` & `.write()`." },
+      { type: "multi", q: "Tahapan verifikasi dan konfigurasi di Arduino IDE sebelum upload program adalah... (Pilih 3 jawaban)", options: ["Memilih tipe board pada `Tools > Board`", "Memilih Port serial aktif pada `Tools > Port`", "Kompilasi kode dengan tombol `Verify` (centang)", "Menonaktifkan kabel USB saat upload", "Mengubah bahasa OS ke Latin"], correct: [0, 1, 2], exp: "<b>Pembahasan:</b> Wajib verifikasi sintaks, tentukan tipe Board, dan sesuaikan Port COM." },
+
+      // 46-50: Benar / Salah
+      { type: "single", q: "<b>BENAR ATAU SALAH?</b><br>Pada layanan PaaS, pengembang memiliki kendali penuh untuk memodifikasi konfigurasi kernel OS fisik dan pendingin di data center vendor cloud.", options: ["BENAR", "SALAH"], correct: 1, exp: "<b>Jawaban: SALAH.</b> Pengembang pada PaaS hanya mengelola aplikasi dan data, OS/hardware dikelola penuh oleh vendor." },
+      { type: "single", q: "<b>BENAR ATAU SALAH?</b><br>Karakteristik Rapid Elasticity memungkinkan alokasi CPU dan RAM bertambah atau menyusut secara otomatis sesuai beban trafik real-time.", options: ["BENAR", "SALAH"], correct: 0, exp: "<b>Jawaban: BENAR.</b> Rapid Elasticity bekerja otomatis menambah/mengurangi resource sesuai kebutuhan." },
+      { type: "single", q: "<b>BENAR ATAU SALAH?</b><br>Jika Industri 4.0 berfokus pada otomasi siber-fisik, maka Society 5.0 berfokus pada integrasi teknologi untuk kesejahteraan manusia (human-centric).", options: ["BENAR", "SALAH"], correct: 0, exp: "<b>Jawaban: BENAR.</b> Society 5.0 menempatkan manusia sebagai pusat pemanfaatan teknologi." },
+      { type: "single", q: "<b>BENAR ATAU SALAH?</b><br>Nilai resistansi listrik sensor LDR akan semakin MEMBESAR ketika intensitas cahaya yang mengenai permukaannya semakin terang.", options: ["BENAR", "SALAH"], correct: 1, exp: "<b>Jawaban: SALAH.</b> Semakin terang cahaya, resistansi LDR justru akan semakin MENGECIL." },
+      { type: "single", q: "<b>BENAR ATAU SALAH?</b><br>Board ESP32 memiliki fitur IoT secara native karena sudah dilengkapi modul Wi-Fi dan Bluetooth built-in secara langsung.", options: ["BENAR", "SALAH"], correct: 0, exp: "<b>Jawaban: BENAR.</b> ESP32 sudah terintegrasi modul Wi-Fi dan Bluetooth di dalam chipnya." }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let selectedMulti = [];
+
+    function loadQuestion() {
+      selectedMulti = [];
+      const q = questions[currentIdx];
+      document.getElementById("question-number").innerText = `Soal ${currentIdx + 1} / ${questions.length}`;
+      document.getElementById("question-text").innerHTML = q.q;
+      
+      const typeBadge = document.getElementById("question-type");
+      if (q.type === "multi") {
+        typeBadge.innerText = "Pilihan Ganda Kompleks (Pilih 3 Jawaban)";
+      } else if (currentIdx >= 45) {
+        typeBadge.innerText = "Soal Benar / Salah";
+      } else {
+        typeBadge.innerText = "Pilihan Ganda Tunggal";
+      }
+
+      const optionsContainer = document.getElementById("options-container");
+      optionsContainer.innerHTML = "";
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        if (q.type === "multi") {
+          btn.innerHTML = `<input type="checkbox" class="checkbox-custom" id="check-${idx}"> ${String.fromCharCode(65 + idx)}. ${opt}`;
+          btn.onclick = () => toggleMultiSelect(idx);
+        } else {
+          btn.innerHTML = `${String.fromCharCode(65 + idx)}. ${opt}`;
+          btn.onclick = () => selectSingleOption(idx);
+        }
+        optionsContainer.appendChild(btn);
+      });
+
+      document.getElementById("explanation-box").style.display = "none";
+      const actionBtn = document.getElementById("action-btn");
+      actionBtn.innerText = q.type === "multi" ? "Submit Jawaban" : "Jawab";
+      actionBtn.style.display = q.type === "multi" ? "block" : "none";
+    }
+
+    function selectSingleOption(selectedIdx) {
+      const q = questions[currentIdx];
+      const buttons = document.querySelectorAll(".option-btn");
+
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.correct) btn.classList.add("correct");
+        if (idx === selectedIdx && selectedIdx !== q.correct) btn.classList.add("wrong");
+      });
+
+      if (selectedIdx === q.correct) {
+        score += 2;
+        document.getElementById("score-count").innerText = `Skor: ${score}`;
+      }
+
+      showExplanation(q.exp);
+    }
+
+    function toggleMultiSelect(idx) {
+      const chk = document.getElementById(`check-${idx}`);
+      chk.checked = !chk.checked;
+      if (chk.checked) {
+        selectedMulti.push(idx);
+      } else {
+        selectedMulti = selectedMulti.filter(i => i !== idx);
+      }
+    }
+
+    function handleAction() {
+      const q = questions[currentIdx];
+      if (q.type === "multi") {
+        if (selectedMulti.length !== 3) {
+          alert("Harap pilih tepat 3 jawaban!");
+          return;
+        }
+
+        const buttons = document.querySelectorAll(".option-btn");
+        buttons.forEach((btn, idx) => {
+          btn.disabled = true;
+          const chk = document.getElementById(`check-${idx}`);
+          chk.disabled = true;
+          if (q.correct.includes(idx)) btn.classList.add("correct");
+          if (selectedMulti.includes(idx) && !q.correct.includes(idx)) btn.classList.add("wrong");
+        });
+
+        // Hitung skor multi (jika 3 jawaban benar semua)
+        const isCorrect = q.correct.every(val => selectedMulti.includes(val));
+        if (isCorrect) {
+          score += 2;
+          document.getElementById("score-count").innerText = `Skor: ${score}`;
+        }
+
+        showExplanation(q.exp);
+      } else {
+        currentIdx++;
+        if (currentIdx < questions.length) {
+          loadQuestion();
+        } else {
+          showResults();
+        }
+      }
+    }
+
+    function showExplanation(expText) {
+      const expBox = document.getElementById("explanation-box");
+      expBox.innerHTML = expText;
+      expBox.style.display = "block";
+
+      const actionBtn = document.getElementById("action-btn");
+      actionBtn.innerText = "Lanjut Soal Berikutnya →";
+      actionBtn.onclick = () => {
+        actionBtn.onclick = handleAction;
+        currentIdx++;
+        if (currentIdx < questions.length) {
+          loadQuestion();
+        } else {
+          showResults();
+        }
+      };
+      actionBtn.style.display = "block";
+    }
+
+    function showResults() {
+      document.getElementById("quiz-screen").style.display = "none";
+      const resultScreen = document.getElementById("result-screen");
+      resultScreen.style.display = "block";
+
+      document.getElementById("final-score").innerText = `${score} / 100`;
+
+      const desc = document.getElementById("result-desc");
+      if (score >= 80) {
+        desc.innerText = "Luar biasa! Pemahaman kamu sudah sangat matang untuk Asesmen Tengah Semester!";
+      } else if (score >= 60) {
+        desc.innerText = "Bagus! Kamu sudah memahami sebagian besar materi, tingkatkan lagi belajar materi yang salah.";
+      } else {
+        desc.innerText = "Jangan menyerah! Ulangi kuis ini untuk memperdalam pemahaman materi kamu.";
+      }
+    }
+
+    function restartQuiz() {
+      currentIdx = 0;
+      score = 0;
+      document.getElementById("score-count").innerText = `Skor: 0`;
+      document.getElementById("result-screen").style.display = "none";
+      document.getElementById("quiz-screen").style.display = "block";
+      loadQuestion();
+    }
+
+    loadQuestion();
+  </script>
+</body>
+</html>
